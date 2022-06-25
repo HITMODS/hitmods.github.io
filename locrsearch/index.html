@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOCR Search</title>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ubuntu&display=swap');
+
+        html, body, input, textarea, select, button {
+            border-color: #736b5e;
+            color: #e8e6e3;
+            background-color: #181a1b;
+        }
+
+        * {
+            font-family: "Ubuntu", sans-serif;
+            scrollbar-color: #454a4d #202324;
+        }
+
+        h1 {
+            font-size: 50px;
+            text-decoration: underline;
+        }
+
+        h2, label {
+            font-size: 30px;
+        }
+
+        input, #locrbutton {
+            font-size: 25px;
+        }
+
+        .centered {
+            position: absolute;
+            top:  50%;
+            left: 50%;
+            transform: translate(-50%,-50%);
+        }
+    </style> 
+</head>
+<body>
+    <div class="centered">
+        <h1>LOCR Search</h1>
+        <label for="locrhash">LOCR Hash:</label><br><br>
+        <input type="text" id="locrhash" name="locrhash"><br><br>
+        <button type="button" id="locrbutton">Search LOCR</button><br>
+        <h2 id="resulttext">Result: </h2>
+        <h3 id="hashtext">CRC32 Hash: </h3>
+    </div>
+
+    <script src="crc32.js"></script>
+    <script>
+        window.addEventListener("load", async function () {
+            const {crc32} = crc
+            let rawJson = await fetch("locrFiles.json")
+            const locr = await JSON.parse(await rawJson.text())
+    
+            document.querySelector("#locrhash").addEventListener("keyup", event => {
+                if (event.key !== "Enter") return;
+                document.querySelector("#locrbutton").click();
+                event.preventDefault();
+            });
+    
+            document.getElementById('locrbutton').onclick = function () {
+                let locrHash = document.getElementById("locrhash").value.toUpperCase()
+                locrHash = locrHash.replace(/\s/g, '')
+                locrHash = crc32(locrHash)
+                
+                document.getElementById("hashtext").innerHTML = "CRC32 Hash: " + locrHash
+    
+                for (const data of locr) {
+                    if (data.StringHash == locrHash) {
+                        document.getElementById("resulttext").innerHTML = "Result: " + data.String
+                        return
+                    }
+                }
+    
+                document.getElementById("resulttext").innerHTML = "Result: NOT FOUND"
+            }
+        })
+    </script>
+</body>
+</html>
